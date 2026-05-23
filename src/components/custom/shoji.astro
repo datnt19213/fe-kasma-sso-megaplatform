@@ -1,0 +1,163 @@
+---
+import logoonly from "@/assets/logo-only-transparent.png";
+import topbanner from "@/assets/top-banner.png";
+import bottombanner from "@/assets/bottom-banner.png";
+---
+
+<div class="relative w-screen h-screen flex items-center justify-center">
+  <!-- CỬA SHOJI (Nằm dưới logo preload nhưng nằm trên Main UI) -->
+  <div
+    id="shoji-wrapper"
+    class="fixed inset-0 z-999 flex flex-col pointer-events-auto isolate"
+    style="perspective: 600px; transform-style: preserve-3d;"
+  >
+    <div
+      id="top-door"
+      class="absolute left-0 w-full h-[50vh] overflow-hidden top-0 border-b-2 bg-[#080A10] border-white translate-y-0 will-change-transform"
+      style="transform: translate3d(0,0,0);"
+    >
+      <img
+        src={topbanner.src}
+        alt="banner kasma saas"
+        class="w-full h-full object-contain"
+      />
+    </div>
+    <div
+      id="bottom-door"
+      class="absolute left-0 w-full h-[50vh] overflow-hidden bottom-0 border-t-2 bg-[#080A10] border-white translate-y-0 will-change-transform"
+      style="transform: translate3d(0,0,0);"
+    >
+      <img
+        src={bottombanner.src}
+        alt="banner authorized kasma"
+        class="w-full h-full object-contain"
+      />
+    </div>
+  </div>
+
+  <!-- LOGO XOAY LÚC LOADING (Thêm w-full h-full cho img bên trong để nó chịu thu nhỏ) -->
+
+  <div
+    id="shoji-loading"
+    class="fixed rounded-full w-fit h-fit p-3 border-white border-2 bg-black animate-spin top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-1000 opacity-100"
+  >
+    <img
+      src={logoonly.src}
+      alt="Logo Loader"
+      loading="lazy"
+      width="50"
+      height="50"
+    />
+  </div>
+
+  <!-- 2. LỚP MAIN UI (z-index thấp nhất để nằm sau cửa và logo) -->
+  <div
+    id="real-ui"
+    class="relative items-center justify-center w-full h-full p-4 z-10 will-change-[opacity,transform] hidden"
+  >
+    <div
+      id="scan-line"
+      class="absolute top-0 rotate-12 -right-2.5 w-72 h-[150%] mix-blend-difference bg-white/30 hidden z-500"
+    >
+    </div>
+    <slot />
+  </div>
+</div>
+<script>
+  import { gsap } from "gsap";
+
+  window.addEventListener("DOMContentLoaded", () => {
+    document.documentElement.style.overflow = "hidden";
+    document.body.style.overflow = "hidden";
+
+    const tl = gsap.timeline();
+
+    // --- GIAI ĐOẠN 1: ĐÓNG CỬA VÀ LOADING (Chạy tuần tự từ 0s) ---
+    tl.to("#top-door", { translateY: "0%", duration: 0.5 })
+      .to("#bottom-door", { translateY: "0%", duration: 0.5 }, "<")
+      .to("#shoji-loading", { opacity: 1, duration: 1.5 }, "<")
+      .to("#shoji-loading", { opacity: 0, duration: 0.3 });
+
+    // --- GIAI ĐOẠN 2: MỞ CỬA SHOJI ---
+    tl.to(
+      "#top-door",
+      {
+        translateZ: 400,
+        translateY: "-160%",
+        duration: 1.3,
+        ease: "power1.inOut",
+        delay: 0.5,
+        force3D: true,
+      },
+      "<",
+    )
+      .to(
+        "#bottom-door",
+        {
+          translateZ: 400,
+          translateY: "160%",
+          duration: 1.3,
+          ease: "power1.inOut",
+          force3D: true,
+        },
+        "<",
+      )
+      .to("#top-door", { visibility: "hidden", display: "none", delay: 0.3 })
+      .to(
+        "#bottom-door",
+        { visibility: "hidden", display: "none", delay: 0.3 },
+        "<",
+      )
+      .to("#shoji-wrapper", { pointerEvents: "none" }, "<")
+      .to("#shoji-loading", { opacity: 0, duration: 0.3, ease: "back" }, "<")
+      .to("#shoji-loading", {
+        visibility: "hidden",
+        display: "none",
+        delay: 0.3,
+      });
+
+    // --- ĐÂY MỚI LÀ NƠI ĐẶT NHÃN: Ngay khi cửa mở hoàn toàn và biến mất ---
+    tl.add("showUI", "-=2.5");
+
+    // Cho Real UI hiện lên tại nhãn showUI
+    gsap.set("#real-ui", {
+      clearProps: "animation",
+      display: "flex",
+      opacity: 0,
+      y: 15,
+      scale: 1.02,
+    });
+    tl.to(
+      "#real-ui",
+      { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" },
+      "showUI",
+    );
+
+    tl.set(
+      "#scan-line",
+      {
+        display: "block",
+        right: "-400px",
+        left: "auto",
+        backgroundColor: "rgba(255, 255, 255, 0.01)",
+      },
+      "showUI+=0.8",
+    );
+
+    tl.to(
+      "#scan-line",
+      {
+        right: "34%",
+        backgroundColor: "rgba(255, 255, 255, 1)",
+        duration: 0.5,
+        ease: "power3.out",
+      },
+      "showUI+=0.8",
+    ).to("#scan-line", {
+      right: "120%",
+      backgroundColor: "rgba(255, 255, 255, 0)",
+      duration: 0.5,
+      ease: "power3.in",
+    });
+  });
+</script>
