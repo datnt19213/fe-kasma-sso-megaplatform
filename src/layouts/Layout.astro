@@ -1,4 +1,6 @@
-
+---
+import ToastContainer from "@/components/custom/toast.astro"
+---
 <!doctype html>
 <html lang="en">
 	<head>
@@ -11,5 +13,6 @@
 	</head>
 	<body class="absolute inset-0 -z-10 h-full w-full bg-white bg-[radial-gradient(#bfdbfe_1px,transparent_1px)] bg-size-[16px_16px]">
 		<slot />
+		<ToastContainer position="tr" />
 	</body>
 </html>

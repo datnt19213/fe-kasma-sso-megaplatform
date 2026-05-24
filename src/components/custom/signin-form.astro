@@ -1,0 +1,145 @@
+---
+import { Eye, EyeClosed, Info } from "@lucide/astro";
+import { Label } from "../ui/label";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Form } from "../ui/form";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+---
+
+<Form id="signin-form" class="flex flex-col gap-4">
+  <div class="flex flex-col gap-2">
+    <Label for="identifier" class="text-sm font-normal">Username/Email</Label>
+    <Input
+      id="identifier"
+      name="identifier"
+      type="text"
+      placeholder="Username/Email"
+      required
+      autocomplete="username"
+    />
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <Label for="signin-password" class="text-sm font-normal">
+      <span>Password</span>
+      <Tooltip>
+        <TooltipTrigger>
+          <Info size={10} class="text-gray-500" />
+        </TooltipTrigger>
+        <TooltipContent
+          side="right"
+          class="bg-white shadow-lg"
+          class="bg-white"
+        >
+          <p class="text-[10px] text-gray-500">
+            At least 6 characters, including upper and lower case letters,
+            numbers and special characters
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </Label>
+    <div class="relative">
+      <Input
+        id="signin-password"
+        name="password"
+        type="password"
+        placeholder="Password"
+        required
+        minlength="6"
+        autocomplete="current-password"
+      />
+      <button
+        type="button"
+        id="toggle-signin-password"
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+      >
+        <Eye id="eye-open" size={20} />
+<EyeClosed id="eye-close" class="hidden" size={20} />
+
+      </button>
+    </div>
+  </div>
+
+  <Button type="submit" class="w-full">Sign In</Button>
+</Form>
+
+<script>
+  import { toast } from "@/utils/toast";
+
+  // Khai báo các Element cần dùng
+  const signinForm = document.getElementById("signin-form") as HTMLFormElement | null;
+  const toggleBtn = document.getElementById("toggle-signin-password") as HTMLButtonElement | null;
+  const passwordInput = document.getElementById("signin-password") as HTMLInputElement | null;
+  const identifierInput = document.getElementById("identifier") as HTMLInputElement | null;
+  
+  // Đã bỏ biến eyeIcon (signin-eye) lỗi thời
+  const eyeOpenIcon = document.getElementById("eye-open") as HTMLElement | null;
+  const eyeCloseIcon = document.getElementById("eye-close") as HTMLElement | null;
+
+  // Kiểm tra tính hợp lệ của DOM
+  if (!signinForm || !toggleBtn || !passwordInput || !identifierInput || !eyeOpenIcon || !eyeCloseIcon) {
+    toast.error("Some elements in the signin form were not found");
+  } else {
+    let showPassword = false;
+
+    // Đặt hiển thị mặc định chính xác cho SVG lúc mới load trang
+    eyeOpenIcon.style.display = "block";
+    eyeCloseIcon.style.display = "none";
+
+    // Toggle Password (Đã sửa lỗi lồng hàm)
+    toggleBtn.addEventListener("click", () => {
+      showPassword = !showPassword;
+
+      // 1. Đổi type của input giữa ẩn và hiện text
+      passwordInput.type = showPassword ? "text" : "password";
+
+      // 2. Ép style hiển thị trực tiếp để xử lý triệt để lỗi chùm icon
+      if (showPassword) {
+        eyeOpenIcon.style.display = "none";
+        eyeCloseIcon.style.display = "block";
+      } else {
+        eyeOpenIcon.style.display = "block";
+        eyeCloseIcon.style.display = "none";
+      }
+    });
+
+    // Submit Form
+    signinForm.addEventListener("submit", async (e: SubmitEvent) => {
+      e.preventDefault();
+
+      const identifier = identifierInput.value.trim();
+      const password = passwordInput.value;
+
+      if (!identifier) {
+        toast.info("Please enter email or username");
+        return;
+      }
+
+      if (password.length < 6) {
+        toast.info("Password must have at least 6 characters");
+        return;
+      }
+
+      const formData = { identifier, password };
+
+      try {
+        const res = await fetch("/api/signin", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          toast.success("Log in successfully!");
+        } else {
+          toast.error(data.message || "signin failed");
+        }
+      } catch (err: any) {
+        toast.error("Error connecting to server");
+      }
+    });
+  }
+</script>

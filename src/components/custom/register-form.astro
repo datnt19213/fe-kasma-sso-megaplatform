@@ -1,0 +1,240 @@
+---
+import { Eye, EyeClosed, Info } from "@lucide/astro";
+import { Label } from "../ui/label";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Form } from "../ui/form";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+---
+
+<Form id="register-form" class="flex flex-col gap-4">
+  <div class="flex flex-col gap-2">
+    <Label for="display_name" class="text-sm font-normal">Display Name</Label>
+    <Input
+      id="display_name"
+      name="display_name"
+      type="text"
+      placeholder="Display Name"
+      required
+    />
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <Label for="email" class="text-sm font-normal">Email</Label>
+    <Input
+      id="email"
+      name="email"
+      type="email"
+      placeholder="example@email.com"
+      required
+      autocomplete="email"
+    />
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <Label for="reg-password" class="text-sm font-normal">
+      <span>Password</span>
+      <Tooltip>
+        <TooltipTrigger>
+          <Info size={10} class="text-gray-500" />
+        </TooltipTrigger>
+        <TooltipContent side="right" class="bg-white shadow-lg">
+          <p class="text-[10px] text-gray-500">
+            At least 6 characters, including upper and lower case letters,
+            numbers and special characters
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </Label>
+    <div class="relative">
+      <Input
+        id="reg-password"
+        name="password"
+        type="password"
+        placeholder="Password"
+        required
+        minlength="6"
+        class="pr-10"
+      />
+      <button
+        type="button"
+        id="toggle-reg-password"
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+      >
+        <Eye id="reg-eye-open" size={20} />
+        <EyeClosed id="reg-eye-close" class="hidden" size={20} />
+      </button>
+    </div>
+  </div>
+
+  <div class="flex flex-col gap-2">
+    <Label for="reg-confirm-password" class="text-sm font-normal">
+      <span>Confirm Password</span>
+      <Tooltip>
+        <TooltipTrigger>
+          <Info size={10} class="text-gray-500" />
+        </TooltipTrigger>
+        <TooltipContent side="right" class="bg-white shadow-lg">
+          <p class="text-[10px] text-gray-500">
+            At least 6 characters, including upper and lower case letters,
+            numbers and special characters
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </Label>
+    <div class="relative">
+      <Input
+        id="reg-confirm-password"
+        name="confirm-password"
+        type="password"
+        placeholder="Confirm Password"
+        required
+        minlength="6"
+        class="pr-10"
+      />
+      <button
+        type="button"
+        id="toggle-confirm-password"
+        class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+      >
+        <Eye id="confirm-eye-open" size={20} />
+        <EyeClosed id="confirm-eye-close" class="hidden" size={20} />
+      </button>
+    </div>
+  </div>
+
+  <div class="flex items-center gap-2">
+    <Input type="checkbox" id="login_after" checked class="size-3" />
+    <Label for="login_after" class="text-sm font-normal">Login after signup success</Label>
+  </div>
+
+  <Button type="submit" class="w-full">Signup</Button>
+</Form>
+
+<script>
+  import { toast } from "@/utils/toast";
+
+  // Lấy DOM Elements chung
+  const regForm = document.getElementById("register-form") as HTMLFormElement | null;
+  const displayNameInput = document.getElementById("display_name") as HTMLInputElement | null;
+  const emailInput = document.getElementById("email") as HTMLInputElement | null;
+  const loginAfterCheckbox = document.getElementById("login_after") as HTMLInputElement | null;
+
+  // Cụm xử lý Password chính
+  const toggleBtn = document.getElementById("toggle-reg-password") as HTMLButtonElement | null;
+  const passwordInput = document.getElementById("reg-password") as HTMLInputElement | null;
+  const regEyeOpen = document.getElementById("reg-eye-open") as HTMLElement | null;
+  const regEyeClose = document.getElementById("reg-eye-close") as HTMLElement | null;
+
+  // Cụm xử lý Confirm Password
+  const toggleConfirmBtn = document.getElementById("toggle-confirm-password") as HTMLButtonElement | null;
+  const confirmPasswordInput = document.getElementById("reg-confirm-password") as HTMLInputElement | null;
+  const confirmEyeOpen = document.getElementById("confirm-eye-open") as HTMLElement | null;
+  const confirmEyeClose = document.getElementById("confirm-eye-close") as HTMLElement | null;
+
+  if (
+    !regForm || !displayNameInput || !emailInput || !loginAfterCheckbox ||
+    !toggleBtn || !passwordInput || !regEyeOpen || !regEyeClose ||
+    !toggleConfirmBtn || !confirmPasswordInput || !confirmEyeOpen || !confirmEyeClose
+  ) {
+    toast.error("Some elements were not found in the registration form");
+  } else {
+    // 1. Trạng thái hiển thị ban đầu
+    let showPassword = false;
+    let showConfirmPassword = false;
+
+    regEyeOpen.style.display = "block";
+    regEyeClose.style.display = "none";
+    confirmEyeOpen.style.display = "block";
+    confirmEyeClose.style.display = "none";
+
+    // 2. Logic ẩn/hiện cho Password chính
+    toggleBtn.addEventListener("click", () => {
+      showPassword = !showPassword;
+      passwordInput.type = showPassword ? "text" : "password";
+      
+      if (showPassword) {
+        regEyeOpen.style.display = "none";
+        regEyeClose.style.display = "block";
+      } else {
+        regEyeOpen.style.display = "block";
+        regEyeClose.style.display = "none";
+      }
+    });
+
+    // 3. Logic ẩn/hiện cho Confirm Password
+    toggleConfirmBtn.addEventListener("click", () => {
+      showConfirmPassword = !showConfirmPassword;
+      confirmPasswordInput.type = showConfirmPassword ? "text" : "password";
+      
+      if (showConfirmPassword) {
+        confirmEyeOpen.style.display = "none";
+        confirmEyeClose.style.display = "block";
+      } else {
+        confirmEyeOpen.style.display = "block";
+        confirmEyeClose.style.display = "none";
+      }
+    });
+
+    // 4. Submit Form kèm Validation chặt chẽ
+    regForm.addEventListener("submit", async (e: SubmitEvent) => {
+      e.preventDefault();
+
+      const display_name = displayNameInput.value.trim();
+      const email = emailInput.value.trim();
+      const password = passwordInput.value;
+      const confirmPassword = confirmPasswordInput.value;
+      const loginAfter = loginAfterCheckbox.checked;
+
+      if (!display_name) {
+        toast.info("Please enter a display name");
+        return;
+      }
+      if (!email) {
+        toast.info("Please enter email");
+        return;
+      }
+
+      // Kiểm tra định dạng mật khẩu phức tạp
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$/;
+      if (!passwordRegex.test(password)) {
+        toast.info("Password must have at least 6 characters, including uppercase, lowercase, numbers and special characters.");
+        return;
+      }
+
+      // KHÔNG ĐƯỢC THIẾU: Kiểm tra 2 mật khẩu trùng nhau
+      if (password !== confirmPassword) {
+        toast.info("Passwords do not match");
+        return;
+      }
+
+      const formData = {
+        email,
+        password,
+        display_name,
+        is_login_after_registration_success: loginAfter,
+      };
+
+      try {
+        const res = await fetch("/api/register", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData),
+        });
+
+        const data = await res.json();
+
+        if (res.ok) {
+          toast.success("Registered successfully!");
+          if (loginAfter) {
+            window.location.href = "/dashboard";
+          }
+        } else {
+          toast.error(data.message || "Registration failed");
+        }
+      } catch (err: any) {
+        toast.error("Error connecting to server");
+      }
+    });
+  }
+</script>

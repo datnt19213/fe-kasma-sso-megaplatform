@@ -909,6 +909,11 @@
   dependencies:
     html-escaper "^3.0.3"
 
+"@lucide/astro@^1.16.0":
+  version "1.16.0"
+  resolved "https://registry.yarnpkg.com/@lucide/astro/-/astro-1.16.0.tgz#8ed7c91446b8e3b2b05d449b7d993255df7551d2"
+  integrity sha512-RWT+9Y1UAMnz/oiJMssnQTSeBM0AbwzK1SsOeY2zQungN7PQxm4Pp4bNxIVp/Wu77TBXkpPoaIyxYqagZVjWGQ==
+
 "@modelcontextprotocol/sdk@^1.26.0":
   version "1.29.0"
   resolved "https://registry.yarnpkg.com/@modelcontextprotocol/sdk/-/sdk-1.29.0.tgz#79786d8b525e269de850ac82b1f1f757f3915f44"

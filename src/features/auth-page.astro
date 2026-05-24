@@ -10,33 +10,61 @@ import Input from "@/components/ui/input/input.astro";
 import Label from "@/components/ui/label/label.astro";
 import Button from "@/components/ui/button/button.astro";
 import logoonly from "@/assets/logo-only-transparent.png";
+import {EyeClosed, Eye} from "@lucide/astro"
+import CircleProgress from "@/components/custom/circle.astro"
+import SigninForm from "@/components/custom/signin-form.astro"
+import SignupForm from "@/components/custom/register-form.astro"
+
+
+
+
+let showPassword = false;
 ---
 
 <style>
-  #face-login,
+  #face-signin,
   #face-register {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     image-rendering: -webkit-optimize-contrast;
   }
-  #cube-container.is-animating #face-login,
+  #cube-container.is-animating #face-signin,
   #cube-container.is-animating #face-register {
     will-change: transform;
   }
 </style>
 
-<div class="relative w-full min-w-xs max-w-xs h-fit perspective-[7000px]">
+<div class="relative w-full min-w-xs max-w-xs h-fit perspective-[10000px]">
+  <div class="flex items-center justify-between gap-4 mb-4">
+    <div class="relative h-10 w-10 min-w-10 flex items-center justify-center rounded-full bg-white border border-gray-100 shadow-md after:content-[''] after:absolute after:inset-0 after:rounded-full after:shadow-[inset_0_0_8px_rgba(0,0,0,0.05)] after:pointer-events-none">
+      <span class="absolute top-1/2 left-1/2 -translate-1/2 rounded-full h-2.5 w-2.5 shadow-md bg-chart-2"></span>
+        <div id="rotate-spin" class="h-7.5 w-7.5 rounded-full">
+          <CircleProgress 
+            id="kasma-sso-loader" 
+            progress={50} 
+            size={30} 
+            strokeWidth={20}
+            trackColor={{dark:"transparent",light:"transparent"}}
+            easing="easeOutCubic" 
+            duration={500}
+          />
+        </div>
+    </div>
+    <div class="relative flex items-center border border-gray-100 w-auto min-w-10 h-10 max-h-10 rounded-full shadow-md bg-white px-3 py-0.5">
+      <p id="text-error" class="line-clamp-2 leading-3 text-xs text-destructive"></p>
+    </div>
+  </div>
   <div id="cube-container" class="relative w-full transform-3d">
 
-    <!-- Mặt trước: Login -->
-    <div id="face-login" class="w-full backface-hidden transform-[translateZ(160px)]">
-      <Card id="login-card" class="w-full min-w-xs max-w-xs shadow-lg">
+    <!-- Mặt trước: Signin -->
+    <div id="face-signin" class="w-full backface-hidden transform-[translateZ(160px)]">
+      <Card id="signin-card" class="w-full min-w-xs max-w-xs shadow-lg">
         <CardHeader class="text-center">
           <CardTitle class="text-2xl">
             <div class="flex flex-col items-center">
               <img
                 src={logoonly.src}
-                alt="Logo Login Kasma Megaplatform"
+                alt="Logo Signin Kasma Megaplatform"
                 loading="lazy"
                 width="50"
                 height="50"
@@ -47,31 +75,7 @@ import logoonly from "@/assets/logo-only-transparent.png";
           <CardDescription>Sign in to access your account</CardDescription>
         </CardHeader>
         <CardContent>
-          <Form id="login-form" class="flex flex-col gap-4">
-            <div class="flex flex-col gap-2">
-              <Label for="email">Email</Label>
-              <Input
-                id="email"
-                name="email"
-                type="email"
-                placeholder="name@example.com"
-                required
-                autocomplete="email"
-              />
-            </div>
-            <div class="flex flex-col gap-2">
-              <Label for="password">Password</Label>
-              <Input
-                id="password"
-                name="password"
-                type="password"
-                placeholder="Enter your password"
-                required
-                autocomplete="current-password"
-              />
-            </div>
-            <Button type="submit" class="w-full">Sign In</Button>
-          </Form>
+          <SigninForm  /> 
         </CardContent>
         <CardFooter class="flex flex-col gap-4">
           <p class="text-sm text-center text-muted-foreground">
@@ -94,7 +98,7 @@ import logoonly from "@/assets/logo-only-transparent.png";
             <div class="flex flex-col items-center">
               <img
                 src={logoonly.src}
-                alt="Logo Login Kasma Megaplatform"
+                alt="Logo Signin Kasma Megaplatform"
                 loading="lazy"
                 width="50"
                 height="50"
@@ -102,34 +106,10 @@ import logoonly from "@/assets/logo-only-transparent.png";
               <span>Welcome to Kasma</span>
             </div>
           </CardTitle>
-          <CardDescription>Sign up to access your account</CardDescription>
+          <CardDescription>Sign up to new account</CardDescription>
         </CardHeader>
         <CardContent>
-          <Form id="register-form" class="flex flex-col gap-4">
-            <div class="flex flex-col gap-2">
-              <Label for="reg-email">Email</Label>
-              <Input
-                id="reg-email"
-                name="email"
-                type="email"
-                placeholder="name@example.com"
-                required
-                autocomplete="email"
-              />
-            </div>
-            <div class="flex flex-col gap-2">
-              <Label for="reg-password">Password</Label>
-              <Input
-                id="reg-password"
-                name="password"
-                type="password"
-                placeholder="Enter your password"
-                required
-                autocomplete="current-password"
-              />
-            </div>
-            <Button type="submit" class="w-full">Sign Up</Button>
-          </Form>
+          <SignupForm />
         </CardContent>
         <CardFooter class="flex flex-col gap-4">
           <p class="text-sm text-center text-muted-foreground">
@@ -153,36 +133,38 @@ import logoonly from "@/assets/logo-only-transparent.png";
   const signup_change = document.getElementById("signup-action");
   const signin_change = document.getElementById("signin-action");
   const cube = document.getElementById("cube-container");
-  const faceLogin = document.getElementById("face-login");
+  const faceSignin = document.getElementById("face-signin");
   const faceRegister = document.getElementById("face-register");
 
   signup_change?.addEventListener("click", (e) => {
     e.preventDefault();
-    faceLogin?.classList.add("pointer-events-none");
+    faceSignin?.classList.add("pointer-events-none");
     faceRegister?.classList.remove("pointer-events-none");
     gsap.to(cube, {
       rotateY: -90,
       duration: 0.8,
       ease: "power2.out",
     });
+    gsap.to("#rotate-spin",{rotateZ:"+=180", duration: 0.7, ease: "power1"})
   });
 
   signin_change?.addEventListener("click", (e) => {
     e.preventDefault();
-    faceLogin?.classList.remove("pointer-events-none");
+    faceSignin?.classList.remove("pointer-events-none");
     faceRegister?.classList.add("pointer-events-none");
     gsap.to(cube, {
       rotateY: 0,
       duration: 0.8,
-      ease: "power2.out",
+      ease: "power2",
     });
+    gsap.to("#rotate-spin",{rotateZ:"+=180", duration: 0.7, ease: "power1"})
   });
 
-  document.getElementById("login-form")?.addEventListener("submit", async (e) => {
+  document.getElementById("signin-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
-    console.log("Login attempt:", {
+    console.log("Signin attempt:", {
       email: formData.get("email"),
       password: formData.get("password"),
     });

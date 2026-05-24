@@ -1,0 +1,491 @@
+---
+/**
+ * @interface Props
+ * @description Props for the CircleProgress component.
+ * @property {string} id - Unique identifier for the circle progress component. Defaults to "circle-p".
+ * @property {number} progress - The current progress value (0-100). Defaults to 75.
+ * @property {number} size - The size of the circle in pixels (width and height). Defaults to 160.
+ * @property {number} strokeWidth - The width of the progress stroke. Defaults to 6.
+ * @property {'round' | 'butt' | 'square'} strokeCap - The style of the stroke ends. Defaults to 'round'.
+ * @property {'gradient' | 'solid' | 'none'} strokeMode - The mode for the progress stroke (gradient, solid, or none). Defaults to 'gradient'.
+ * @property {'none' | 'solid'} fillMode - The mode for the circle fill (solid or none). Defaults to 'none'.
+ * @property {string} fillColor - The color to fill the circle when fillMode is 'solid'. Defaults to '#1a1a2e'.
+ * @property {string} solidColor - The color for the progress stroke when strokeMode is 'solid'. Defaults to '#AA44FF'.
+ * @property {string[]} gradientColors - An array of colors for the gradient stroke. Defaults to a predefined set of colors.
+ * @property {number} duration - The duration of the progress animation in milliseconds. Defaults to 400.
+ * @property {string} easing - The easing function for the animation. Defaults to 'linear'.
+ * @property {string} class - Additional CSS classes to apply to the component.
+ * @property {{light?: string, dark?: string}} trackColor - An object defining the track color for light and dark themes. Defaults to light: "#e5e7eb", dark: "#374151".
+ */
+
+export interface Props {
+  id?: string;
+  progress?: number;
+  size?: number;
+  strokeWidth?: number;
+  strokeCap?: "round" | "butt" | "square";
+  strokeMode?: "gradient" | "solid" | "none";
+  fillMode?: "none" | "solid";
+  fillColor?: string;
+  solidColor?: string;
+  gradientColors?: string[];
+  duration?: number;
+  easing?: string;
+  class?: string;
+  trackColor?: { light?: string; dark?: string };
+}
+const {
+  id = "circle-p",
+  progress = 75,
+  size = 160,
+  strokeWidth = 6,
+  strokeCap = "round",
+  strokeMode = "gradient",
+  fillMode = "none",
+  fillColor = "#1a1a2e",
+  solidColor = "#AA44FF",
+  gradientColors = [
+    "#FF3366",
+    "#E9E909",
+    "#00DD88",
+    "#00CCFF",
+    "#AA44FF",
+    "FF44CC",
+  ],
+  duration = 400,
+  easing = "linear",
+  class: className = "",
+  trackColor = { light: "#e5e7eb", dark: "#374151" },
+} = Astro.props;
+---
+
+<circle-progress
+  id={id}
+  class={className}
+  data-progress={progress}
+  data-size={size}
+  data-stroke-width={strokeWidth}
+  data-stroke-cap={strokeCap}
+  data-stroke-mode={strokeMode}
+  data-fill-mode={fillMode}
+  data-fill-color={fillColor}
+  data-solid-color={solidColor}
+  data-gradient-colors={JSON.stringify(gradientColors)}
+  data-duration={duration}
+  data-easing={easing}
+  style={`width:${size}px; height:${size}px; display:inline-block;`}
+>
+  <svg
+    class="cse-svg"
+    viewBox="0 0 100 100"
+    xmlns="http://www.w3.org/2000/svg"
+    style="width:100%; height:100%; overflow:visible;"
+  >
+    <defs class="cse-defs"></defs>
+    <circle
+      cx="50"
+      cy="50"
+      r="40"
+      fill="none"
+      stroke="currentColor"
+      style={`--track-light: ${trackColor.light};
+    --track-dark: ${trackColor.dark};`}
+      stroke-width={strokeWidth}
+      class="cse-track"></circle>
+    <circle class="cse-fill" cx="50" cy="50" r="40" fill="none" stroke="none"
+    ></circle>
+    <g class="cse-arcs"></g>
+    <circle class="cse-cap-start" cx="50" cy="10" r="0"></circle>
+    <circle class="cse-cap-end" cx="50" cy="10" r="0"></circle>
+  </svg>
+</circle-progress>
+
+<style>
+  .cse-track {
+    color: var(--track-light);
+  }
+  @media (prefers-color-scheme: dark) {
+    .cse-track {
+      color: var(--track-dark);
+    }
+  }
+</style>
+
+<script>
+  /**
+   * @const {number} CIRC - Circumference of a circle with radius 40, used for SVG path calculations.
+   */
+  const CIRC = 2 * Math.PI * 40;
+
+  /**
+   * @interface CircleConfig
+   * @description Defines the structure for the configuration of the CircleProgress component.
+   */
+  interface CircleConfig {
+    progress: number;
+    size: number;
+    strokeWidth: number;
+    strokeCap: string;
+    strokeMode: string;
+    fillMode: string;
+    fillColor: string;
+    solidColor: string;
+    gradientColors: string[];
+    duration: number;
+    easing: string;
+  }
+
+  /**
+   * @const {Record<string, (t: number) => number>} easeFns - Collection of easing functions for animations.
+   */
+  const easeFns: Record<string, (t: number) => number> = {
+    linear: (t: number) => t,
+    ease: (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
+    easeIn: (t: number) => t * t,
+    easeOut: (t: number) => t * (2 - t),
+    easeInOut: (t: number) => (t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t),
+    easeInCubic: (t: number) => t * t * t,
+    easeOutCubic: (t: number) => --t * t * t + 1,
+    easeInBack: (t: number) => {
+      const c1 = 1.70158;
+      return c1 * t * t * t - c1 * t * t;
+    },
+    easeOutBack: (t: number) => {
+      const c1 = 1.70158,
+        c3 = c1 + 1;
+      return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
+    },
+    easeInOutBack: (t: number) => {
+      const c2 = 1.70158 * 1.525;
+      return t < 0.5
+        ? (Math.pow(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) / 2
+        : (Math.pow(2 * t - 2, 2) * ((c2 + 1) * (2 * t - 2) + c2) + 2) / 2;
+    },
+    easeOutElastic: (t: number) => {
+      if (t === 0 || t === 1) return t;
+      return (
+        Math.pow(2, -10 * t) * Math.sin(((t - 0.075) * (2 * Math.PI)) / 0.3) + 1
+      );
+    },
+    easeOutBounce: (t: number) => {
+      const n1 = 7.5625,
+        d1 = 2.75;
+      if (t < 1 / d1) return n1 * t * t;
+      else if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75;
+      else if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375;
+      else return n1 * (t -= 2.625 / d1) * t + 0.984375;
+    },
+  };
+
+  /**
+   * @class CircleProgress
+   * @extends HTMLElement
+   * @description Custom Web Component for rendering an animated circle progress indicator.
+   */
+  class CircleProgress extends HTMLElement {
+    /**
+     * @private
+     * @property {number | null} rafId - Stores the requestAnimationFrame ID for animation control.
+     */
+    private rafId: number | null = null;
+    /**
+     * @private
+     * @property {CircleConfig} config - Stores the configuration for the circle progress.
+     */
+    private config!: CircleConfig;
+    /**
+     * @private
+     * @property {number} currentProg - The current progress value being rendered.
+     */
+    private currentProg: number = 0;
+
+    /**
+     * @constructor
+     * @description Creates an instance of CircleProgress.
+     */
+    constructor() {
+      super();
+    }
+
+    /**
+     * @method connectedCallback
+     * @description Lifecycle method called when the element is added to the DOM. Initializes configuration and renders the component.
+     */
+    connectedCallback() {
+      this.config = {
+        progress: +(this.getAttribute("data-progress") || 75),
+        size: +(this.getAttribute("data-size") || 160),
+        strokeWidth: +(this.getAttribute("data-stroke-width") || 6),
+        strokeCap: this.getAttribute("data-stroke-cap") || "round",
+        strokeMode: this.getAttribute("data-stroke-mode") || "gradient",
+        fillMode: this.getAttribute("data-fill-mode") || "none",
+        fillColor: this.getAttribute("data-fill-color") || "#1a1a2e",
+        solidColor: this.getAttribute("data-solid-color") || "#AA44FF",
+        gradientColors: JSON.parse(
+          this.getAttribute("data-gradient-colors") || "[]",
+        ),
+        duration: +(this.getAttribute("data-duration") || 400),
+        easing: this.getAttribute("data-easing") || "linear",
+      };
+
+      this.currentProg = this.config.progress;
+      this.renderAt(this.currentProg);
+    }
+
+    /**
+     * @method setProgress
+     * @description Animates the circle progress to a target value.
+     * @param {number} target - The target progress value (0-100).
+     * @param {number | null} customDuration - Optional custom duration for the animation in milliseconds. If null, uses the component\'s default duration.
+     */
+    public setProgress(target: number, customDuration: number | null = null) {
+      if (this.rafId) cancelAnimationFrame(this.rafId);
+      const animFrom = this.currentProg;
+      const dur =
+        customDuration !== null ? customDuration : this.config.duration;
+      const fn = easeFns[this.config.easing] || easeFns.linear;
+      let animStart: number | null = null;
+
+      const step = (ts: number) => {
+        if (!animStart) animStart = ts;
+        const t = dur === 0 ? 1 : Math.min((ts - animStart) / dur, 1);
+        this.currentProg = animFrom + (target - animFrom) * fn(t);
+        this.renderAt(this.currentProg);
+
+        if (t < 1) {
+          this.rafId = requestAnimationFrame(step);
+        } else {
+          this.currentProg = target;
+          this.renderAt(this.currentProg);
+        }
+      };
+      this.rafId = requestAnimationFrame(step);
+    }
+
+    /**
+     * @private
+     * @method ptOnCircle
+     * @description Calculates the Cartesian coordinates of a point on the circle given an angle.
+     * @param {number} deg - The angle in degrees.
+     * @returns {[number, number]} - An array containing the x and y coordinates.
+     */
+    private ptOnCircle(deg: number): [number, number] {
+      const a = ((deg - 90) * Math.PI) / 180;
+      return [50 + 40 * Math.cos(a), 50 + 40 * Math.sin(a)];
+    }
+
+    private svgEl(tag: string): SVGElement {
+      return document.createElementNS("http://www.w3.org/2000/svg", tag);
+    }
+    private hideCaps() {
+      this.querySelector(".cse-cap-start")?.setAttribute("r", "0");
+      this.querySelector(".cse-cap-end")?.setAttribute("r", "0");
+    }
+
+    private renderAt(prog: number) {
+      const {
+        strokeWidth: sw,
+        fillMode,
+        fillColor,
+        strokeMode,
+        solidColor,
+        strokeCap: capStyle,
+        gradientColors: gradColors,
+      } = this.config;
+
+      // Đảm bảo progress không vượt quá 100% hoặc nhỏ hơn 0%
+      const validatedProg = Math.max(0, Math.min(100, prog));
+
+      const fc = this.querySelector(".cse-fill");
+      if (fc)
+        fc.setAttribute("fill", fillMode === "solid" ? fillColor : "none");
+
+      const defs = this.querySelector(".cse-defs");
+      const arcsG = this.querySelector(".cse-arcs");
+      if (!defs || !arcsG) return;
+
+      // Xóa nội dung cũ để render frame mới
+      defs.innerHTML = "";
+      arcsG.innerHTML = "";
+
+      const filled = (validatedProg / 100) * CIRC;
+      const n = gradColors.length;
+      const arcAngle = 360 / n;
+      const arcLen = CIRC / n;
+
+      if (strokeMode === "none" || validatedProg <= 0) {
+        this.hideCaps();
+        return;
+      }
+
+      const cs = this.querySelector(
+        ".cse-cap-start",
+      ) as SVGCircleElement | null;
+      const ce = this.querySelector(".cse-cap-end") as SVGCircleElement | null;
+
+      if (strokeMode === "solid") {
+        const [sx, sy] = this.ptOnCircle(0);
+        const ea = (validatedProg / 100) * 360;
+        const [ex, ey] = this.ptOnCircle(ea);
+        const large = validatedProg > 50 ? 1 : 0;
+
+        const d =
+          validatedProg >= 100
+            ? `M${sx} ${sy} A40 40 0 1 1 ${sx - 0.001} ${sy}`
+            : `M${sx} ${sy} A40 40 0 ${large} 1 ${ex} ${ey}`;
+
+        const path = this.svgEl("path");
+        path.setAttribute("d", d);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", solidColor);
+        path.setAttribute("stroke-width", String(sw));
+        path.setAttribute("stroke-linecap", capStyle);
+        arcsG.appendChild(path);
+
+        const cr = capStyle === "round" && validatedProg < 100 ? sw / 2 : 0;
+
+        if (cs) {
+          cs.setAttribute("cx", String(sx));
+          cs.setAttribute("cy", String(sy));
+          cs.setAttribute("r", String(cr));
+          cs.setAttribute("fill", solidColor);
+        }
+        if (ce) {
+          ce.setAttribute("cx", String(validatedProg >= 100 ? sx : ex));
+          ce.setAttribute("cy", String(validatedProg >= 100 ? sy : ey));
+          ce.setAttribute("r", String(cr));
+          ce.setAttribute("fill", solidColor);
+        }
+        return;
+      }
+
+      // Handle strokeMode === "gradient"
+      this.hideCaps();
+
+      let remaining = filled,
+        lastX = 0,
+        lastY = 0;
+
+      // Đếm xem có tổng cộng bao nhiêu đoạn path thực sự được vẽ
+      const activeArcsCount = Math.ceil(filled / arcLen);
+
+      for (let i = 0; i < n; i++) {
+        if (remaining <= 0) break;
+        const startAngle = i * arcAngle;
+        const [x1, y1] = this.ptOnCircle(startAngle);
+        const [x2, y2] = this.ptOnCircle(startAngle + arcAngle);
+        const gid = `cse-g-${Math.random().toString(36).substring(2, 6)}`;
+
+        const grad = this.svgEl("linearGradient");
+        grad.setAttribute("id", gid);
+        grad.setAttribute("gradientUnits", "userSpaceOnUse");
+        grad.setAttribute("x1", String(x1));
+        grad.setAttribute("y1", String(y1));
+        grad.setAttribute("x2", String(x2));
+        grad.setAttribute("y2", String(y2));
+
+        const s1 = this.svgEl("stop");
+        s1.setAttribute("offset", "0%");
+        s1.setAttribute("stop-color", gradColors[i % n]);
+        const s2 = this.svgEl("stop");
+        s2.setAttribute("offset", "100%");
+        s2.setAttribute("stop-color", gradColors[(i + 1) % n]);
+        grad.appendChild(s1);
+        grad.appendChild(s2);
+        defs.appendChild(grad);
+
+        const thisLen = Math.min(remaining, arcLen);
+        const portionAngle = (thisLen / arcLen) * arcAngle;
+        const [ex, ey] = this.ptOnCircle(startAngle + portionAngle);
+        const large = portionAngle > 180 ? 1 : 0;
+
+        const path = this.svgEl("path");
+        path.setAttribute("d", `M${x1} ${y1} A40 40 0 ${large} 1 ${ex} ${ey}`);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", `url(#${gid})`);
+        path.setAttribute("stroke-width", String(sw));
+
+        // --- LOGIC XỬ LÝ CAP MƯỢT THEO GRADIENT TỪNG FRAME ---
+        if (validatedProg >= 100) {
+          // Khi full 100% thì khép kín, tất cả đều vuông để không bị chấm thừa
+          path.setAttribute("stroke-linecap", "butt");
+        } else {
+          if (i === 0 && activeArcsCount === 1) {
+            // Nếu chỉ có 1 đoạn duy nhất đang chạy (progress nhỏ), bo cả start lẫn end
+            path.setAttribute("stroke-linecap", "round");
+          } else if (i === 0) {
+            // Đoạn đầu tiên của vòng tròn: Chỉ cần bo đầu xuất phát (Start Cap)
+            // Trong SVG không có "round-start", mẹo là dùng CSS vẽ chồng hoặc để round
+            // vì đoạn sau đè lên sẽ che mất góc butt của đoạn trước.
+            path.setAttribute("stroke-linecap", "round");
+          } else if (i === activeArcsCount - 1) {
+            // Đoạn cuối cùng đang tăng trưởng: Bo đầu kết thúc (End Cap)
+            path.setAttribute("stroke-linecap", "round");
+          } else {
+            // Các đoạn nằm giữa: Để vuông hoàn toàn để nối nhau không bị hở
+            path.setAttribute("stroke-linecap", "butt");
+          }
+        }
+        // ----------------------------------------------------
+
+        arcsG.appendChild(path);
+
+        lastX = ex;
+        lastY = ey;
+        remaining -= arcLen;
+      }
+
+      for (let i = 0; i < n; i++) {
+        if (remaining <= 0) break;
+        const startAngle = i * arcAngle;
+        const [x1, y1] = this.ptOnCircle(startAngle);
+        const [x2, y2] = this.ptOnCircle(startAngle + arcAngle);
+        const gid = `cse-g-${Math.random().toString(36).substring(2, 6)}`;
+
+        const grad = this.svgEl("linearGradient");
+        grad.setAttribute("id", gid);
+        grad.setAttribute("gradientUnits", "userSpaceOnUse");
+        grad.setAttribute("x1", String(x1));
+        grad.setAttribute("y1", String(y1));
+        grad.setAttribute("x2", String(x2));
+        grad.setAttribute("y2", String(y2));
+
+        const s1 = this.svgEl("stop");
+        s1.setAttribute("offset", "0%");
+        s1.setAttribute("stop-color", gradColors[i % n]);
+        const s2 = this.svgEl("stop");
+        s2.setAttribute("offset", "100%");
+        s2.setAttribute("stop-color", gradColors[(i + 1) % n]);
+        grad.appendChild(s1);
+        grad.appendChild(s2);
+        defs.appendChild(grad);
+
+        const thisLen = Math.min(remaining, arcLen);
+        const portionAngle = (thisLen / arcLen) * arcAngle;
+        const [ex, ey] = this.ptOnCircle(startAngle + portionAngle);
+        const large = portionAngle > 180 ? 1 : 0;
+
+        const path = this.svgEl("path");
+        path.setAttribute("d", `M${x1} ${y1} A40 40 0 ${large} 1 ${ex} ${ey}`);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", `url(#${gid})`);
+        path.setAttribute("stroke-width", String(sw));
+        path.setAttribute("stroke-linecap", "butt");
+        arcsG.appendChild(path);
+
+        // lastX/lastY chỉ dùng cho việc đặt tọa độ end cap khi < 100%
+        lastX = ex;
+        lastY = ey;
+        remaining -= arcLen;
+      }
+
+      // Nếu là solid mode thì đoạn trên đã return rồi.
+      // Đoạn này chỉ chạy khi là gradient mode và dùng để ẩn các cap tĩnh thừa đi.
+      if (cs) cs.setAttribute("r", "0");
+
+      if (ce) ce.setAttribute("r", "0");
+    }
+  }
+
+  customElements.define("circle-progress", CircleProgress);
+</script>

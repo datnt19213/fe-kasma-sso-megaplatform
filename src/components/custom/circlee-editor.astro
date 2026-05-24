@@ -1,0 +1,639 @@
+---
+export interface Props {
+  progress?: number;
+  size?: number;
+  strokeWidth?: number;
+  strokeCap?: 'round' | 'butt' | 'square';
+  strokeMode?: 'gradient' | 'solid' | 'none';
+  fillMode?: 'none' | 'solid';
+  fillColor?: string;
+  solidColor?: string;
+  gradientColors?: string[];
+  duration?: number;
+  easing?: string;
+}
+
+const {
+  progress = 75,
+  size = 160,
+  strokeWidth = 6,
+  strokeCap = 'round',
+  strokeMode = 'gradient',
+  fillMode = 'none',
+  fillColor = '#1a1a2e',
+  solidColor = '#AA44FF',
+  gradientColors = ['#FF3366','#FF9900','#00DD88','#00CCFF','#AA44FF','#FF44CC'],
+  duration = 400,
+  easing = 'linear',
+} = Astro.props;
+---
+
+<div class="cse-root">
+  <div class="cse-preview">
+    <svg
+      id="cse-svg"
+      class="cse-svg"
+      viewBox="0 0 100 100"
+      xmlns="http://www.w3.org/2000/svg"
+      style={`width:${size}px;height:${size}px`}
+    >
+      <defs id="cse-defs"></defs>
+      <circle id="cse-track" cx="50" cy="50" r="40" fill="none" stroke="currentColor" stroke-width={strokeWidth} class="cse-track"/>
+      <circle id="cse-fill" cx="50" cy="50" r="40" fill="none" stroke="none"/>
+      <g id="cse-arcs"></g>
+      <circle id="cse-cap-start" cx="50" cy="10" r="0"/>
+      <circle id="cse-cap-end"   cx="50" cy="10" r="0"/>
+    </svg>
+  </div>
+
+  <div class="cse-panel">
+    <!-- Progress -->
+    <div class="cse-row">
+      <label class="cse-label">Tiến độ <span id="lbl-prog">{progress}%</span></label>
+      <input type="range" id="s-prog" min="0" max="100" value={progress} step="1">
+    </div>
+    <!-- Size -->
+    <div class="cse-row">
+      <label class="cse-label">Kích thước <span id="lbl-size">{size}px</span></label>
+      <input type="range" id="s-size" min="60" max="260" value={size} step="1">
+    </div>
+    <!-- Stroke width -->
+    <div class="cse-row">
+      <label class="cse-label">Độ dày stroke <span id="lbl-w">{strokeWidth}</span></label>
+      <input type="range" id="s-w" min="1" max="30" value={strokeWidth} step="1">
+    </div>
+
+    <div class="cse-divider"></div>
+
+    <!-- Cap -->
+    <div class="cse-row">
+      <label class="cse-label">Đầu stroke</label>
+      <div class="cse-seg" id="seg-cap">
+        <button class={strokeCap === 'round'  ? 'active' : ''} data-cap="round">Round</button>
+        <button class={strokeCap === 'butt'   ? 'active' : ''} data-cap="butt">Flat</button>
+        <button class={strokeCap === 'square' ? 'active' : ''} data-cap="square">Square</button>
+      </div>
+    </div>
+
+    <div class="cse-divider"></div>
+
+    <!-- Stroke mode -->
+    <div class="cse-row">
+      <label class="cse-label">Loại màu stroke</label>
+      <div class="cse-seg" id="seg-mode">
+        <button class={strokeMode === 'gradient' ? 'active' : ''} data-mode="gradient">Gradient</button>
+        <button class={strokeMode === 'solid'    ? 'active' : ''} data-mode="solid">Solid</button>
+        <button class={strokeMode === 'none'     ? 'active' : ''} data-mode="none">Transparent</button>
+      </div>
+    </div>
+
+    <!-- Gradient colors -->
+    <div id="cse-gradient-section" style={strokeMode !== 'gradient' ? 'display:none' : ''}>
+      <div class="cse-row">
+        <label class="cse-label" style="margin-bottom:4px">Màu gradient</label>
+        <div class="cse-chip-wrap" id="chip-wrap"></div>
+      </div>
+      <div class="cse-color-row">
+        <input type="color" id="new-color" value="#AA44FF">
+        <button class="cse-add-btn" id="btn-add-color">+</button>
+      </div>
+    </div>
+
+    <!-- Solid color -->
+    <div id="cse-solid-section" style={strokeMode !== 'solid' ? 'display:none' : ''}>
+      <div class="cse-row">
+        <label class="cse-label">Màu solid</label>
+        <input type="color" id="solid-color" value={solidColor}>
+      </div>
+    </div>
+
+    <div class="cse-divider"></div>
+
+    <!-- Fill -->
+    <div class="cse-row">
+      <label class="cse-label">Fill circle</label>
+      <div class="cse-seg" id="seg-fill">
+        <button class={fillMode === 'none'  ? 'active' : ''} data-fill="none">Transparent</button>
+        <button class={fillMode === 'solid' ? 'active' : ''} data-fill="solid">Solid</button>
+      </div>
+    </div>
+    <div id="cse-fill-section" style={fillMode !== 'solid' ? 'display:none' : ''}>
+      <div class="cse-row">
+        <input type="color" id="fill-color" value={fillColor}>
+      </div>
+    </div>
+
+    <div class="cse-divider"></div>
+
+    <div class="cse-section-title">Animation</div>
+
+    <!-- Duration -->
+    <div class="cse-row">
+      <label class="cse-label">Duration <span id="lbl-dur">{duration}ms</span></label>
+      <input type="range" id="s-dur" min="50" max="2000" value={duration} step="50">
+    </div>
+
+    <!-- Easing -->
+    <div class="cse-row">
+      <label class="cse-label">Easing</label>
+      <div class="cse-ease-grid" id="ease-grid">
+        {[
+          { key: 'linear',       label: 'linear',      path: 'M2 16 L26 2' },
+          { key: 'ease',         label: 'ease',        path: 'M2 16 C6 16 8 2 26 2' },
+          { key: 'easeIn',       label: 'ease in',     path: 'M2 16 C2 16 20 16 26 2' },
+          { key: 'easeOut',      label: 'ease out',    path: 'M2 16 C8 2 26 2 26 2' },
+          { key: 'easeInOut',    label: 'ease in out', path: 'M2 16 C2 12 26 6 26 2' },
+          { key: 'easeInBack',   label: 'back in',     path: 'M2 16 C6 18 22 16 26 2' },
+          { key: 'easeOutBack',  label: 'back out',    path: 'M2 16 C6 2 22 0 26 2' },
+          { key: 'easeInOutBack',label: 'back in out', path: 'M2 16 C2 20 12 10 14 9 C16 8 26 -2 26 2' },
+          { key: 'easeOutElastic',label:'elastic',     path: 'M2 16 C8 2 18 -1 22 3 C25 6 27 1 26 2' },
+          { key: 'easeOutBounce',label: 'bounce',      path: 'M2 16 C6 2 10 2 13 8 C15 12 17 6 20 6 C22 6 24 4 26 2' },
+          { key: 'easeInCubic',  label: 'cubic in',   path: 'M2 16 C14 16 24 10 26 2' },
+          { key: 'easeOutCubic', label: 'cubic out',  path: 'M2 16 C4 8 14 2 26 2' },
+        ].map(e => (
+          <button
+            data-ease={e.key}
+            class={easing === e.key ? 'active' : ''}
+          >
+            <svg viewBox="0 0 28 18" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d={e.path} stroke="currentColor" stroke-width="1.5" stroke-linecap="round" fill="none"/>
+            </svg>
+            <span>{e.label}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .cse-root {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 24px;
+    padding: 20px;
+    align-items: flex-start;
+    font-family: system-ui, sans-serif;
+  }
+
+  .cse-preview {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 260px;
+    min-height: 260px;
+  }
+
+  .cse-svg {
+    overflow: visible;
+  }
+
+  .cse-track {
+    color: #e5e7eb;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .cse-track { color: #374151; }
+  }
+
+  .cse-panel {
+    flex: 1;
+    min-width: 260px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  .cse-row {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .cse-label {
+    font-size: 12px;
+    color: #6b7280;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .cse-label span {
+    font-weight: 500;
+    color: #111827;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .cse-label { color: #9ca3af; }
+    .cse-label span { color: #f9fafb; }
+  }
+
+  .cse-row input[type="range"] {
+    width: 100%;
+    accent-color: #AA44FF;
+  }
+
+  .cse-seg {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+
+  .cse-seg button {
+    flex: 1;
+    min-width: 52px;
+    padding: 5px 6px;
+    font-size: 12px;
+    font-family: inherit;
+    border: 0.5px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    color: #111827;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+
+  .cse-seg button.active {
+    background: #111827;
+    color: #fff;
+    border-color: #111827;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .cse-seg button { background: #1f2937; color: #f9fafb; border-color: #374151; }
+    .cse-seg button.active { background: #f9fafb; color: #111827; border-color: #f9fafb; }
+  }
+
+  .cse-divider {
+    height: 0.5px;
+    background: #e5e7eb;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .cse-divider { background: #374151; }
+  }
+
+  .cse-section-title {
+    font-size: 11px;
+    font-weight: 500;
+    color: #9ca3af;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .cse-color-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    align-items: center;
+  }
+
+  .cse-color-row input[type="color"] {
+    width: 32px;
+    height: 32px;
+    border: 0.5px solid #d1d5db;
+    border-radius: 6px;
+    padding: 2px;
+    cursor: pointer;
+    background: none;
+  }
+
+  .cse-add-btn {
+    width: 32px;
+    height: 32px;
+    border: 0.5px dashed #d1d5db;
+    border-radius: 6px;
+    background: none;
+    color: #6b7280;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: all 0.15s;
+  }
+
+  .cse-add-btn:hover {
+    border-color: #9ca3af;
+    color: #111827;
+  }
+
+  .cse-chip-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+
+  .cse-chip {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    padding: 2px 6px 2px 2px;
+    border: 0.5px solid #e5e7eb;
+    border-radius: 20px;
+    background: #f9fafb;
+    cursor: grab;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .cse-chip { background: #1f2937; border-color: #374151; }
+  }
+
+  .cse-chip .swatch {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .cse-chip .rm {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #9ca3af;
+    font-size: 13px;
+    line-height: 1;
+    padding: 0;
+  }
+
+  .cse-chip .rm:hover { color: #111827; }
+
+  .cse-ease-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 5px;
+  }
+
+  .cse-ease-grid button {
+    padding: 6px 4px;
+    font-size: 11px;
+    font-family: inherit;
+    border: 0.5px solid #d1d5db;
+    border-radius: 6px;
+    background: #fff;
+    color: #374151;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 3px;
+    transition: all 0.15s;
+  }
+
+  .cse-ease-grid button svg {
+    width: 28px;
+    height: 18px;
+  }
+
+  .cse-ease-grid button span { font-size: 10px; }
+
+  .cse-ease-grid button.active {
+    background: #111827;
+    color: #fff;
+    border-color: #111827;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .cse-ease-grid button { background: #1f2937; color: #d1d5db; border-color: #374151; }
+    .cse-ease-grid button.active { background: #f9fafb; color: #111827; }
+  }
+</style>
+
+<script define:vars={{ progress, size, strokeWidth, strokeCap, strokeMode, fillMode, solidColor, fillColor, gradientColors, duration, easing }}>
+  const CIRC = 2 * Math.PI * 40;
+
+  let state = {
+    gradColors: [...gradientColors],
+    capStyle: strokeCap,
+    strokeMode,
+    fillMode,
+    easeKey: easing,
+    currentProg: progress,
+    targetProg: progress,
+  };
+
+  let animStart = null;
+  let animFrom = progress;
+  let rafId = null;
+
+  const easeFns = {
+    linear: t => t,
+    ease: t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+    easeIn: t => t * t,
+    easeOut: t => t * (2 - t),
+    easeInOut: t => t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t,
+    easeInCubic: t => t * t * t,
+    easeOutCubic: t => (--t) * t * t + 1,
+    easeInBack: t => { const c1 = 1.70158; return c1 * t * t * t - c1 * t * t; },
+    easeOutBack: t => { const c1 = 1.70158, c3 = c1 + 1; return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2); },
+    easeInOutBack: t => { const c2 = 1.70158 * 1.525; return t < 0.5 ? (Math.pow(2 * t, 2) * ((c2 + 1) * 2 * t - c2)) / 2 : (Math.pow(2 * t - 2, 2) * ((c2 + 1) * (2 * t - 2) + c2) + 2) / 2; },
+    easeOutElastic: t => { if (t === 0 || t === 1) return t; return Math.pow(2, -10 * t) * Math.sin((t - 0.075) * (2 * Math.PI) / 0.3) + 1; },
+    easeOutBounce: t => { const n1 = 7.5625, d1 = 2.75; if (t < 1 / d1) return n1 * t * t; else if (t < 2 / d1) return n1 * (t -= 1.5 / d1) * t + 0.75; else if (t < 2.5 / d1) return n1 * (t -= 2.25 / d1) * t + 0.9375; else return n1 * (t -= 2.625 / d1) * t + 0.984375; },
+  };
+
+  function getDur() { return +(document.getElementById('s-dur')?.value ?? duration); }
+
+  function animateTo(target) {
+    if (rafId) cancelAnimationFrame(rafId);
+    animFrom = state.currentProg;
+    state.targetProg = target;
+    animStart = null;
+    const dur = getDur();
+    const fn = easeFns[state.easeKey] || easeFns.linear;
+    function step(ts) {
+      if (!animStart) animStart = ts;
+      const t = Math.min((ts - animStart) / dur, 1);
+      state.currentProg = animFrom + (state.targetProg - animFrom) * fn(t);
+      renderAt(state.currentProg);
+      if (t < 1) rafId = requestAnimationFrame(step);
+      else { state.currentProg = state.targetProg; renderAt(state.currentProg); }
+    }
+    rafId = requestAnimationFrame(step);
+  }
+
+  function ptOnCircle(deg) {
+    const a = (deg - 90) * Math.PI / 180;
+    return [50 + 40 * Math.cos(a), 50 + 40 * Math.sin(a)];
+  }
+
+  function svgEl(tag) { return document.createElementNS('http://www.w3.org/2000/svg', tag); }
+
+  function renderAt(prog) {
+    const sw = +(document.getElementById('s-w')?.value ?? strokeWidth);
+    const sz = +(document.getElementById('s-size')?.value ?? size);
+    const svg = document.getElementById('cse-svg');
+    if (!svg) return;
+    svg.style.width = sz + 'px';
+    svg.style.height = sz + 'px';
+
+    document.getElementById('cse-track')?.setAttribute('stroke-width', sw);
+
+    const fc = document.getElementById('cse-fill');
+    if (fc) fc.setAttribute('fill', state.fillMode === 'solid' ? (document.getElementById('fill-color')?.value ?? fillColor) : 'none');
+
+    const defs = document.getElementById('cse-defs');
+    const arcsG = document.getElementById('cse-arcs');
+    if (!defs || !arcsG) return;
+    defs.innerHTML = '';
+    arcsG.innerHTML = '';
+
+    const filled = (prog / 100) * CIRC;
+    const n = state.gradColors.length;
+    const arcAngle = 360 / n;
+    const arcLen = CIRC / n;
+
+    function hideCaps() {
+      document.getElementById('cse-cap-start')?.setAttribute('r', 0);
+      document.getElementById('cse-cap-end')?.setAttribute('r', 0);
+    }
+
+    if (state.strokeMode === 'none') { hideCaps(); return; }
+
+    if (state.strokeMode === 'solid') {
+      const col = document.getElementById('solid-color')?.value ?? solidColor;
+      const [sx, sy] = ptOnCircle(0);
+      const ea = (prog / 100) * 360;
+      const [ex, ey] = ptOnCircle(ea);
+      const large = prog > 50 ? 1 : 0;
+      if (prog <= 0) { hideCaps(); return; }
+      const d = prog >= 100
+        ? `M${sx} ${sy} A40 40 0 1 1 ${sx - 0.001} ${sy}`
+        : `M${sx} ${sy} A40 40 0 ${large} 1 ${ex} ${ey}`;
+      const path = svgEl('path');
+      path.setAttribute('d', d); path.setAttribute('fill', 'none');
+      path.setAttribute('stroke', col); path.setAttribute('stroke-width', sw);
+      path.setAttribute('stroke-linecap', state.capStyle);
+      arcsG.appendChild(path);
+      const cr = state.capStyle === 'round' && prog < 100 ? sw / 2 : 0;
+      const cs = document.getElementById('cse-cap-start');
+      if (cs) { cs.setAttribute('cx', sx); cs.setAttribute('cy', sy); cs.setAttribute('r', cr); cs.setAttribute('fill', col); }
+      const ce = document.getElementById('cse-cap-end');
+      if (ce) { ce.setAttribute('cx', prog >= 100 ? sx : ex); ce.setAttribute('cy', prog >= 100 ? sy : ey); ce.setAttribute('r', cr); ce.setAttribute('fill', col); }
+      return;
+    }
+
+    let remaining = filled, firstColor = state.gradColors[0], lastColor = state.gradColors[0], lastX = 0, lastY = 0;
+    for (let i = 0; i < n; i++) {
+      if (remaining <= 0) break;
+      const startAngle = i * arcAngle;
+      const [x1, y1] = ptOnCircle(startAngle);
+      const [x2, y2] = ptOnCircle(startAngle + arcAngle);
+      const gid = `cse-g${i}`;
+      const grad = svgEl('linearGradient');
+      grad.setAttribute('id', gid); grad.setAttribute('gradientUnits', 'userSpaceOnUse');
+      grad.setAttribute('x1', x1); grad.setAttribute('y1', y1);
+      grad.setAttribute('x2', x2); grad.setAttribute('y2', y2);
+      const s1 = svgEl('stop'); s1.setAttribute('offset', '0%'); s1.setAttribute('stop-color', state.gradColors[i % n]);
+      const s2 = svgEl('stop'); s2.setAttribute('offset', '100%'); s2.setAttribute('stop-color', state.gradColors[(i + 1) % n]);
+      grad.appendChild(s1); grad.appendChild(s2); defs.appendChild(grad);
+      const thisLen = Math.min(remaining, arcLen);
+      const portionAngle = (thisLen / arcLen) * arcAngle;
+      const [ex, ey] = ptOnCircle(startAngle + portionAngle);
+      const large = portionAngle > 180 ? 1 : 0;
+      const path = svgEl('path');
+      path.setAttribute('d', `M${x1} ${y1} A40 40 0 ${large} 1 ${ex} ${ey}`);
+      path.setAttribute('fill', 'none'); path.setAttribute('stroke', `url(#${gid})`);
+      path.setAttribute('stroke-width', sw); path.setAttribute('stroke-linecap', 'butt');
+      arcsG.appendChild(path);
+      if (i === 0) firstColor = state.gradColors[0];
+      lastColor = state.gradColors[(i + 1) % n]; lastX = ex; lastY = ey;
+      remaining -= thisLen;
+    }
+
+    const [sx, sy] = ptOnCircle(0);
+    const cr = state.capStyle === 'round' && prog < 100 ? sw / 2 : 0;
+    const cs = document.getElementById('cse-cap-start');
+    if (cs) { cs.setAttribute('cx', sx); cs.setAttribute('cy', sy); cs.setAttribute('r', cr); cs.setAttribute('fill', firstColor); }
+    const ce = document.getElementById('cse-cap-end');
+    if (ce) { ce.setAttribute('cx', prog >= 100 ? sx : lastX); ce.setAttribute('cy', prog >= 100 ? sy : lastY); ce.setAttribute('r', cr); ce.setAttribute('fill', lastColor); }
+  }
+
+  function buildChips() {
+    const wrap = document.getElementById('chip-wrap');
+    if (!wrap) return;
+    wrap.innerHTML = '';
+    state.gradColors.forEach((c, i) => {
+      const chip = document.createElement('div');
+      chip.className = 'cse-chip'; chip.draggable = true; chip.dataset.i = i;
+      chip.innerHTML = `<div class="swatch" style="background:${c}"></div><button class="rm" aria-label="xoá màu">×</button>`;
+      chip.querySelector('.rm').addEventListener('click', () => {
+        if (state.gradColors.length <= 2) return;
+        state.gradColors.splice(i, 1); buildChips(); renderAt(state.currentProg);
+      });
+      chip.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', i));
+      chip.addEventListener('dragover', e => e.preventDefault());
+      chip.addEventListener('drop', e => {
+        e.preventDefault();
+        const from = +e.dataTransfer.getData('text/plain'), to = +chip.dataset.i;
+        if (from !== to) { [state.gradColors[from], state.gradColors[to]] = [state.gradColors[to], state.gradColors[from]]; buildChips(); renderAt(state.currentProg); }
+      });
+      wrap.appendChild(chip);
+    });
+  }
+
+  function setupSegment(id, stateKey, callback) {
+    document.getElementById(id)?.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById(id)?.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state[stateKey] = btn.dataset[stateKey === 'capStyle' ? 'cap' : stateKey === 'strokeMode' ? 'mode' : stateKey === 'fillMode' ? 'fill' : 'ease'];
+        if (callback) callback();
+        renderAt(state.currentProg);
+      });
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    buildChips();
+    renderAt(state.currentProg);
+
+    document.getElementById('s-prog')?.addEventListener('input', function () {
+      document.getElementById('lbl-prog').textContent = this.value + '%';
+      animateTo(+this.value);
+    });
+    document.getElementById('s-size')?.addEventListener('input', function () {
+      document.getElementById('lbl-size').textContent = this.value + 'px';
+      renderAt(state.currentProg);
+    });
+    document.getElementById('s-w')?.addEventListener('input', function () {
+      document.getElementById('lbl-w').textContent = this.value;
+      renderAt(state.currentProg);
+    });
+    document.getElementById('s-dur')?.addEventListener('input', function () {
+      document.getElementById('lbl-dur').textContent = this.value + 'ms';
+    });
+    document.getElementById('solid-color')?.addEventListener('input', () => renderAt(state.currentProg));
+    document.getElementById('fill-color')?.addEventListener('input', () => renderAt(state.currentProg));
+
+    document.getElementById('btn-add-color')?.addEventListener('click', () => {
+      state.gradColors.push(document.getElementById('new-color')?.value ?? '#ffffff');
+      buildChips(); renderAt(state.currentProg);
+    });
+
+    setupSegment('seg-cap', 'capStyle');
+    setupSegment('seg-fill', 'fillMode', () => {
+      document.getElementById('cse-fill-section').style.display = state.fillMode === 'solid' ? '' : 'none';
+    });
+
+    document.getElementById('seg-mode')?.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('seg-mode')?.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.strokeMode = btn.dataset.mode;
+        document.getElementById('cse-gradient-section').style.display = state.strokeMode === 'gradient' ? '' : 'none';
+        document.getElementById('cse-solid-section').style.display = state.strokeMode === 'solid' ? '' : 'none';
+        renderAt(state.currentProg);
+      });
+    });
+
+    document.getElementById('ease-grid')?.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.getElementById('ease-grid')?.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        state.easeKey = btn.dataset.ease;
+      });
+    });
+  });
+</script>

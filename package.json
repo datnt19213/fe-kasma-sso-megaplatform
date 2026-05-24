@@ -1,5 +1,5 @@
 {
-  "name": "",
+  "name": "kasma-sso",
   "type": "module",
   "version": "0.0.1",
   "engines": {
@@ -32,6 +32,7 @@
     "@data-slot/tooltip": "^0.2.166",
     "@fontsource-variable/geist": "^5.2.9",
     "@lexingtonthemes/seo": "^0.2.0",
+    "@lucide/astro": "^1.16.0",
     "@tailwindcss/vite": "^4.3.0",
     "astro": "^6.3.7",
     "class-variance-authority": "^0.7.1",

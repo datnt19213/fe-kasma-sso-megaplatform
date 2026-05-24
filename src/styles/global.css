@@ -1,4 +1,8 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap');
+
 @import "tailwindcss";
+
+
 
 @custom-variant dark (&:is(.dark *));
 
@@ -149,11 +153,16 @@
 
 @layer base {
   * {
+   font-family: "IBM Plex Sans", sans-serif !important;
     @apply border-border outline-ring/50 box-border m-0 p-0 ring-0! ring-offset-0! focus:ring-0! focus:ring-offset-0! focus-visible:ring-0! focus-visible:ring-offset-0!;
   }
 
   *:hover, *:focus, *:focus-visible {
     @apply transition-colors duration-300
+  }
+
+  button, input[type='checkbox'] {
+    @apply cursor-pointer
   }
 
   html {

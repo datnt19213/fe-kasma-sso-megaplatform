@@ -39,7 +39,7 @@ import bottombanner from "@/assets/bottom-banner.png";
 
   <div
     id="shoji-loading"
-    class="fixed rounded-full w-fit h-fit p-3 border-white border-2 bg-black animate-spin top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-1000 opacity-100"
+    class="fixed rounded-full w-fit h-fit p-3 border-white border-4 bg-black animate-spin top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 z-1000 opacity-100"
   >
     <img
       src={logoonly.src}
@@ -53,7 +53,7 @@ import bottombanner from "@/assets/bottom-banner.png";
   <!-- 2. LỚP MAIN UI (z-index thấp nhất để nằm sau cửa và logo) -->
   <div
     id="real-ui"
-    class="relative items-center justify-center w-full h-full p-4 z-10 will-change-[opacity,transform] hidden"
+    class="relative justify-center w-full h-full p-4 z-10 will-change-[opacity,transform] hidden py-8"
   >
     <div
       id="scan-line"
@@ -124,40 +124,40 @@ import bottombanner from "@/assets/bottom-banner.png";
       clearProps: "animation",
       display: "flex",
       opacity: 0,
-      y: 15,
-      scale: 1.02,
+      y: 30,
+      scale: 0.7,
     });
     tl.to(
       "#real-ui",
-      { opacity: 1, y: 0, scale: 1, duration: 0.8, ease: "power3.out" },
+      { opacity: 1, scale: 1, y: 0, duration: 1.2, ease: "power3.out" },
       "showUI",
     );
 
-    tl.set(
-      "#scan-line",
-      {
-        display: "block",
-        right: "-400px",
-        left: "auto",
-        backgroundColor: "rgba(255, 255, 255, 0.01)",
-      },
-      "showUI+=0.8",
-    );
+    // tl.set(
+    //   "#scan-line",
+    //   {
+    //     display: "block",
+    //     right: "-400px",
+    //     left: "auto",
+    //     backgroundColor: "rgba(255, 255, 255, 0.01)",
+    //   },
+    //   "-2.5",
+    // );
 
-    tl.to(
-      "#scan-line",
-      {
-        right: "34%",
-        backgroundColor: "rgba(255, 255, 255, 1)",
-        duration: 0.5,
-        ease: "power3.out",
-      },
-      "showUI+=0.8",
-    ).to("#scan-line", {
-      right: "120%",
-      backgroundColor: "rgba(255, 255, 255, 0)",
-      duration: 0.5,
-      ease: "power3.in",
-    });
+    // tl.to(
+    //   "#scan-line",
+    //   {
+    //     right: "-400px",
+    //     backgroundColor: "rgba(255, 255, 255, 1)",
+    //     duration: 0.2,
+    //     ease: "power3.out",
+    //   },
+    //   "showUI+=0.8",
+    // ).to("#scan-line", {
+    //   right: "120%",
+    //   backgroundColor: "rgba(255, 255, 255, 0)",
+    //   duration: 0.2,
+    //   ease: "power3.in",
+    // });
   });
 </script>
